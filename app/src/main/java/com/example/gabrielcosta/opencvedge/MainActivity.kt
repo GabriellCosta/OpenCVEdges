@@ -2,30 +2,97 @@ package com.example.gabrielcosta.opencvedge
 
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
+import android.view.SurfaceView
 import kotlinx.android.synthetic.main.activity_main.*
+import org.opencv.android.LoaderCallbackInterface
+import org.opencv.android.BaseLoaderCallback
+import org.opencv.android.CameraBridgeViewBase
+import org.opencv.android.OpenCVLoader
+import org.opencv.core.Mat
+import org.opencv.imgproc.Imgproc
 
-class MainActivity : AppCompatActivity() {
+
+
+class MainActivity : AppCompatActivity(), CameraBridgeViewBase.CvCameraViewListener2 {
+
+    override fun onCameraViewStarted(width: Int, height: Int) {
+    }
+
+    override fun onCameraViewStopped() {
+    }
+
+    override fun onCameraFrame(inputFrame: CameraBridgeViewBase.CvCameraViewFrame?): Mat {
+        val src = inputFrame?.gray()
+        val cannyEdges = Mat()
+
+        Imgproc.Canny(src, cannyEdges, 10.0, 100.0)
+
+        return cannyEdges
+    }
+
+    private var loaderCallback: BaseLoaderCallback = object : BaseLoaderCallback(this) {
+
+        override fun onManagerConnected(status: Int) {
+            when (status) {
+                LoaderCallbackInterface.SUCCESS -> {
+                    Log.i(TAG, "OpenCV loaded successfully")
+                    opencv_camera.enableView()
+                }
+                else -> {
+                    super.onManagerConnected(status)
+                }
+            }
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        // Example of a call to a native method
-        sample_text.text = stringFromJNI()
+        opencv_camera.visibility = SurfaceView.VISIBLE
+        opencv_camera.setCvCameraViewListener(this)
+
     }
 
-    /**
-     * A native method that is implemented by the 'native-lib' native library,
-     * which is packaged with this application.
-     */
-    external fun stringFromJNI(): String
+    override fun onPause() {
+        super.onPause()
+        if (opencv_camera != null)
+            opencv_camera.disableView()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        if (opencv_camera != null)
+            opencv_camera.disableView()
+    }
+
+    override fun onResume() {
+        super.onResume()
+
+        if (!OpenCVLoader.initDebug()) {
+            Log.d(TAG, "Internal OpenCV library not found. Using OpenCV Manager for initialization")
+            OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_3_4_0, this, loaderCallback)
+        } else {
+            Log.d(TAG, "OpenCV library found inside package. Using it!")
+            loaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS)
+        }
+    }
 
     companion object {
+
+        private const val TAG = "MainActivity"
 
         // Used to load the 'native-lib' library on application startup.
         init {
             System.loadLibrary("native-lib")
-            System.loadLibrary("opencv_java3")
+
+            if(!OpenCVLoader.initDebug()){
+                Log.d(TAG, "OpenCV not loaded")
+            } else {
+                Log.d(TAG, "OpenCV loaded")
+            }
+
         }
     }
 }
