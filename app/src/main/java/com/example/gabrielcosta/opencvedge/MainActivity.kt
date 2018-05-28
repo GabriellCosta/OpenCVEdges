@@ -1,20 +1,22 @@
 package com.example.gabrielcosta.opencvedge
 
-import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
+import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.SurfaceView
 import kotlinx.android.synthetic.main.activity_main.*
-import org.opencv.android.LoaderCallbackInterface
 import org.opencv.android.BaseLoaderCallback
 import org.opencv.android.CameraBridgeViewBase
+import org.opencv.android.LoaderCallbackInterface
 import org.opencv.android.OpenCVLoader
+import org.opencv.core.CvType
 import org.opencv.core.Mat
+import org.opencv.core.Size
 import org.opencv.imgproc.Imgproc
 
-
-
 class MainActivity : AppCompatActivity(), CameraBridgeViewBase.CvCameraViewListener2 {
+
+    private val detectDocument = DetectDocument()
 
     override fun onCameraViewStarted(width: Int, height: Int) {
     }
@@ -22,13 +24,13 @@ class MainActivity : AppCompatActivity(), CameraBridgeViewBase.CvCameraViewListe
     override fun onCameraViewStopped() {
     }
 
-    override fun onCameraFrame(inputFrame: CameraBridgeViewBase.CvCameraViewFrame?): Mat {
-        val src = inputFrame?.gray()
-        val cannyEdges = Mat()
+    override fun onCameraFrame(inputFrame: CameraBridgeViewBase.CvCameraViewFrame): Mat {
+        val src = inputFrame.gray()
 
-        Imgproc.Canny(src, cannyEdges, 10.0, 100.0)
+       DetectDocument.findDocument(src)
 
-        return cannyEdges
+
+        return src
     }
 
     private var loaderCallback: BaseLoaderCallback = object : BaseLoaderCallback(this) {
@@ -52,7 +54,6 @@ class MainActivity : AppCompatActivity(), CameraBridgeViewBase.CvCameraViewListe
 
         opencv_camera.visibility = SurfaceView.VISIBLE
         opencv_camera.setCvCameraViewListener(this)
-
     }
 
     override fun onPause() {
@@ -87,12 +88,11 @@ class MainActivity : AppCompatActivity(), CameraBridgeViewBase.CvCameraViewListe
         init {
             System.loadLibrary("native-lib")
 
-            if(!OpenCVLoader.initDebug()){
+            if (!OpenCVLoader.initDebug()) {
                 Log.d(TAG, "OpenCV not loaded")
             } else {
                 Log.d(TAG, "OpenCV loaded")
             }
-
         }
     }
 }

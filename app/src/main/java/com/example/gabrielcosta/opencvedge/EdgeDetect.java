@@ -1,4 +1,3 @@
-/*
 package com.example.gabrielcosta.opencvedge;
 
 import android.util.Log;
@@ -19,11 +18,11 @@ public class EdgeDetect {
 
     private final static String TAG = "EdgeDetect";
 
-    public static List<MatOfPoint> findContours(Mat src){
+    public static List<MatOfPoint> findContours(Mat src) {
         Mat img = src.clone();
         src.release();
         //find contours
-        double ratio = getScaleRatio(img.size());
+        double ratio = 1.0;
         int width = (int) (img.size().width / ratio);
         int height = (int) (img.size().height / ratio);
         Size newSize = new Size(width, height);
@@ -46,7 +45,8 @@ public class EdgeDetect {
 
         ArrayList<MatOfPoint> contours = new ArrayList<>();
         Mat hierarchy = new Mat();
-        Imgproc.findContours(dilatedImg, contours, hierarchy, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
+        Imgproc.findContours(dilatedImg, contours, hierarchy, Imgproc.RETR_EXTERNAL,
+                Imgproc.CHAIN_APPROX_SIMPLE);
         hierarchy.release();
 
         Log.d(TAG, "contours found: " + contours.size());
@@ -61,25 +61,27 @@ public class EdgeDetect {
         return contours;
     }
 
-for(MatOfPoint contour: contours){
-        MatOfPoint2f mat = new MatOfPoint2f(contour.toArray());
-        double peri = Imgproc.arcLength(mat, true);
-        MatOfPoint2f approx = new MatOfPoint2f();
-        Imgproc.approxPolyDP(mat, approx, 0.02 * peri, true);
+    public static void apply(List<MatOfPoint> contours) {
+        for (MatOfPoint contour : contours) {
+            MatOfPoint2f mat = new MatOfPoint2f(contour.toArray());
+            double peri = Imgproc.arcLength(mat, true);
+            MatOfPoint2f approx = new MatOfPoint2f();
+            Imgproc.approxPolyDP(mat, approx, 0.02 * peri, true);
 
-        Point[] points = approx.toArray();
-        Log.d("SCANNER", "approx size " + points.length);
+            Point[] points = approx.toArray();
+            Log.d("SCANNER", "approx size " + points.length);
 
-        if (points.length == 4) {
-            Point[] spoints = CVProcessor.sortPoints(points);
+            /*if (points.length == 4) {
+                Point[] spoints = CVProcessor.sortPoints(points);
 
-            if (CVProcessor.insideArea(spoints, newSize)) {
-                rectContour = contour;
-                foundPoints = spoints;
-                break;
-            }
+                if (CVProcessor.insideArea(spoints, newSize)) {
+                    rectContour = contour;
+                    foundPoints = spoints;
+                    break;
+                }
+            }*/
         }
     }
 
+
 }
-*/
