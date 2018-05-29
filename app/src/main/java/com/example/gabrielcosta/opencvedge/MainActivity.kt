@@ -13,7 +13,6 @@ import org.opencv.core.Mat
 
 class MainActivity : AppCompatActivity(), CameraBridgeViewBase.CvCameraViewListener2 {
 
-    private val detectDocument = DetectDocument()
 
     override fun onCameraViewStarted(width: Int, height: Int) {
     }
@@ -23,9 +22,6 @@ class MainActivity : AppCompatActivity(), CameraBridgeViewBase.CvCameraViewListe
 
     override fun onCameraFrame(inputFrame: CameraBridgeViewBase.CvCameraViewFrame): Mat {
         val src = inputFrame.gray()
-
-
-
 
         return src
     }
@@ -83,7 +79,6 @@ class MainActivity : AppCompatActivity(), CameraBridgeViewBase.CvCameraViewListe
 
         // Used to load the 'native-lib' library on application startup.
         init {
-            System.loadLibrary("native-lib")
 
             if (!OpenCVLoader.initDebug()) {
                 Log.d(TAG, "OpenCV not loaded")
